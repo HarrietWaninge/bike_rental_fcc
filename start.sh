@@ -1,8 +1,5 @@
-yes | sudo apt-get install rsync
-rsync -a --exclude={'.*','bikerental'} ./ ./bikerental
+#!/bin/bash
 
+psql -U postgres < bikes.sql
 
-cd bikerental
-git add .
-git commit -m "$(date)"
-git push -u origin main
+psql --username=freecodecamp --dbname=postgres

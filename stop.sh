@@ -1,3 +1,4 @@
+#!/bin/bash
 pg_dump -cC --inserts -U freecodecamp bikes > bikes.sql
 
 yes | sudo apt-get install rsync
