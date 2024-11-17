@@ -57,39 +57,61 @@ RENT_MENU() {
       then
         # send to main menu
         MAIN_MENU "That bike is not available."
-      else 
-      # get customer info
-      echo -e "\nWhat's your phone number?"
-      read PHONE_NUMBER
-      CUSTOMER_NAME=$($PSQL "SELECT name FROM customers WHERE phone = '$PHONE_NUMBER'")
+      else
+        # get customer info
+        echo -e "\nWhat's your phone number?"
+        read PHONE_NUMBER
+
+        CUSTOMER_NAME=$($PSQL "SELECT name FROM customers WHERE phone = '$PHONE_NUMBER'")
+
         # if customer doesn't exist
         if [[ -z $CUSTOMER_NAME ]]
-        then 
-        # get new customer name
-        echo -e "\nWhat's your name?"
-        read CUSTOMER_NAME
-        # insert new customer
-        INSERT_CUSTOMER_RESULT=$($PSQL "INSERT INTO customers(phone, name) VALUES('$PHONE_NUMBER', '$CUSTOMER_NAME')")
+        then
+          # get new customer name
+          echo -e "\nWhat's your name?"
+          read CUSTOMER_NAME
+
+          # insert new customer
+          INSERT_CUSTOMER_RESULT=$($PSQL "INSERT INTO customers(name, phone) VALUES('$CUSTOMER_NAME', '$PHONE_NUMBER')") 
         fi
+
         # get customer_id
-        CUSTOMER_ID=$($PSQL "SELECT customer_id FROM customers WHERE phone = '$PHONE_NUMBER'")
+        CUSTOMER_ID=$($PSQL "SELECT customer_id FROM customers WHERE phone='$PHONE_NUMBER'")
+
         # insert bike rental
-        INSERT_RENTAL_RESULT=$($PSQL "INSERT INTO rentals(customer_id,bike_id) VALUES($CUSTOMER_ID, $BIKE_ID_TO_RENT)")
+        INSERT_RENTAL_RESULT=$($PSQL "INSERT INTO rentals(customer_id, bike_id) VALUES($CUSTOMER_ID, $BIKE_ID_TO_RENT)")
+
         # set bike availability to false
         SET_TO_FALSE_RESULT=$($PSQL "UPDATE bikes SET available = false WHERE bike_id = $BIKE_ID_TO_RENT")
+
         # get bike info
         BIKE_INFO=$($PSQL "SELECT size, type FROM bikes WHERE bike_id = $BIKE_ID_TO_RENT")
-        echo 
         BIKE_INFO_FORMATTED=$(echo $BIKE_INFO | sed 's/ |/"/')
+        
         # send to main menu
-        MAIN_MENU "I have put you down for the $BIKE_INFO_FORMATTED Bike, $(echo $CUSTOMER_NAME | sed -r 's/^ *| *$//g')."
+        MAIN_MENU "I have put you down for the $BIKE_INFO_FORMATTED Bike, $CUSTOMER_NAME."
       fi
     fi
   fi
 }
 
 RETURN_MENU() {
-  echo "Return Menu"
+  # get customer info
+  echo -e "\nWhat's your phone number?"
+  read PHONE_NUMBER
+  CUSTOMER_ID=$($PSQL "select customer_id from customers where phone = '$PHONE_NUMBER'")
+  # if not found
+  if [[ -z $CUSTOMER_ID ]]
+  then
+  #send to main menu
+  MAIN_MENU "I could not find a record for that phone number."
+  else 
+  select * from bikes INNER JOIN rentals using(bike_id) INNER JOIN customers USING(customer_id) where date_returned IS NULL AND  phone = '555-5555';
+  # get customer's rentals
+  # if no rentals
+  # send to main menu
+  fi
+  # send to main menu
 }
 
 EXIT() {
